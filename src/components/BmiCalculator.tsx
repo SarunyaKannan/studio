@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getBmiCategory } from "@/lib/utils";
 import { BmiResultDisplay } from "./BmiResultDisplay";
+import { getBmiAdvice, type BmiAdviceResponse } from "@/ai/flows/bmi-visualization-advice";
 
 type UnitSystem = "metric" | "imperial";
 
@@ -30,9 +31,10 @@ const imperialSchema = z.object({
   path: ["feet"],
 });
 
-type BmiResult = {
+export type BmiResult = {
   bmi: number;
   category: string;
+  advice: BmiAdviceResponse;
 };
 
 export function BmiCalculator() {
@@ -63,37 +65,61 @@ export function BmiCalculator() {
     setResult(null);
   };
 
-  const onSubmit = (values: any) => {
+  const onSubmit = async (values: any) => {
     setIsLoading(true);
     setResult(null);
 
-    let bmi: number;
+    try {
+      let bmi: number;
+      let weight: number;
+      let height: number;
 
-    if (unitSystem === 'metric') {
-      bmi = values.weight / (values.height * values.height);
-    } else {
-      const totalInches = values.feet * 12 + values.inches;
-      bmi = (values.weight / (totalInches * totalInches)) * 703;
-    }
+      if (unitSystem === 'metric') {
+        weight = values.weight;
+        height = values.height;
+        bmi = weight / (height * height);
+      } else {
+        weight = values.weight;
+        const totalInches = values.feet * 12 + values.inches;
+        height = totalInches * 0.0254; // convert to meters
+        bmi = (weight / (totalInches * totalInches)) * 703;
+      }
 
-    if (isNaN(bmi) || !isFinite(bmi) || bmi <= 0) {
-      toast({
-        variant: "destructive",
-        title: "Invalid Calculation",
-        description: "Please check your inputs. The calculated BMI is invalid.",
+      if (isNaN(bmi) || !isFinite(bmi) || bmi <= 0) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Calculation",
+          description: "Please check your inputs. The calculated BMI is invalid.",
+        });
+        return;
+      }
+      
+      const category = getBmiCategory(bmi);
+
+      const advice = await getBmiAdvice({
+        bmi,
+        category,
+        unit: unitSystem,
+        weight: values.weight,
+        height: unitSystem === 'metric' ? values.height : values.feet * 12 + values.inches,
       });
-      setIsLoading(false);
-      return;
+      
+      setResult({
+        bmi,
+        category,
+        advice,
+      });
+
+    } catch (e: any) {
+        console.error(e);
+        toast({
+          variant: "destructive",
+          title: "An unexpected error occurred",
+          description: e.message || "Could not get BMI advice. Please try again later.",
+        });
+    } finally {
+        setIsLoading(false);
     }
-    
-    const category = getBmiCategory(bmi);
-    
-    setResult({
-      bmi,
-      category,
-    });
-    
-    setIsLoading(false);
   };
 
   const handleClear = () => {
