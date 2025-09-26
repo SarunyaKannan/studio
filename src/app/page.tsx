@@ -7,7 +7,7 @@ export default function Home() {
       <div className="w-full max-w-2xl">
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-headline font-bold text-primary">
+            <CardTitle className="text-3xl font-headline font-bold animate-gradient-blink bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[200%_auto]">
               BMI Insights
             </CardTitle>
             <CardDescription className="text-lg">
