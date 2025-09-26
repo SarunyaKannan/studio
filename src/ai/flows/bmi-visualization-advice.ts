@@ -9,6 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { gemini15Flash } from 'genkitx-models';
 
 const BmiAdviceRequestSchema = z.object({
   bmi: z.number().describe('The calculated Body Mass Index.'),
@@ -43,6 +44,7 @@ export async function getBmiAdvice(input: BmiAdviceRequest): Promise<BmiAdviceRe
 
 const prompt = ai.definePrompt({
     name: 'bmiAdvicePrompt',
+    model: 'googleai/gemini-1.5-flash-latest',
     input: { schema: InternalBmiAdviceRequestSchema },
     output: { schema: BmiAdviceResponseSchema },
     prompt: `You are a helpful, encouraging health assistant.
