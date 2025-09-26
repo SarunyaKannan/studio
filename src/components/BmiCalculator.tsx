@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { getBmiCategory } from "@/lib/utils";
-import { visualizeBmiResultWithContextualAdvice, type VisualizeBmiResultWithContextualAdviceOutput } from "@/ai/flows/bmi-visualization-advice";
 import { BmiResultDisplay } from "./BmiResultDisplay";
 
 type UnitSystem = "metric" | "imperial";
@@ -31,7 +30,7 @@ const imperialSchema = z.object({
   path: ["feet"],
 });
 
-type BmiResult = VisualizeBmiResultWithContextualAdviceOutput & {
+type BmiResult = {
   bmi: number;
   category: string;
 };
@@ -64,22 +63,16 @@ export function BmiCalculator() {
     setResult(null);
   };
 
-  const onSubmit = async (values: any) => {
+  const onSubmit = (values: any) => {
     setIsLoading(true);
     setResult(null);
 
-    let weightInKg: number;
-    let heightInM: number;
     let bmi: number;
 
     if (unitSystem === 'metric') {
-      weightInKg = values.weight;
-      heightInM = values.height;
-      bmi = weightInKg / (heightInM * heightInM);
+      bmi = values.weight / (values.height * values.height);
     } else {
-      weightInKg = values.weight * 0.453592;
       const totalInches = values.feet * 12 + values.inches;
-      heightInM = totalInches * 0.0254;
       bmi = (values.weight / (totalInches * totalInches)) * 703;
     }
 
@@ -95,29 +88,12 @@ export function BmiCalculator() {
     
     const category = getBmiCategory(bmi);
     
-    try {
-      const aiResult = await visualizeBmiResultWithContextualAdvice({
-        bmi,
-        weight: weightInKg,
-        height: heightInM,
-      });
-
-      setResult({
-        bmi,
-        category,
-        ...aiResult,
-      });
-
-    } catch (error) {
-      console.error("AI flow error:", error);
-      toast({
-        variant: "destructive",
-        title: "AI Error",
-        description: "Could not get advice and visualization. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    setResult({
+      bmi,
+      category,
+    });
+    
+    setIsLoading(false);
   };
 
   const handleClear = () => {
