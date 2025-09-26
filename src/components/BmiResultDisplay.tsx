@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { BmiResult } from "./BmiCalculator";
 
 export function BmiResultDisplay({ result }: { result: BmiResult }) {
-  const { bmi, category, advice } = result;
+  const { bmi, category, chartData } = result;
 
   return (
     <div className="mt-8 animate-in fade-in-50 duration-500 space-y-8">
@@ -20,15 +20,6 @@ export function BmiResultDisplay({ result }: { result: BmiResult }) {
           </p>
         </CardHeader>
       </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">AI-Powered Advice</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="whitespace-pre-wrap">{advice.personalizedAdvice}</p>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>
@@ -38,7 +29,7 @@ export function BmiResultDisplay({ result }: { result: BmiResult }) {
         <CardContent>
           <div className="w-full h-64">
             <ResponsiveContainer>
-                <BarChart data={advice.chartData}>
+                <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
