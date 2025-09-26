@@ -31,6 +31,11 @@ const BmiAdviceResponseSchema = z.object({
 });
 export type BmiAdviceResponse = z.infer<typeof BmiAdviceResponseSchema>;
 
+// Internal schema to include pre-formatted unit strings
+const InternalBmiAdviceRequestSchema = BmiAdviceRequestSchema.extend({
+    weightUnit: z.string(),
+    heightUnit: z.string(),
+});
 
 export async function getBmiAdvice(input: BmiAdviceRequest): Promise<BmiAdviceResponse> {
   return getBmiAdviceFlow(input);
@@ -38,14 +43,14 @@ export async function getBmiAdvice(input: BmiAdviceRequest): Promise<BmiAdviceRe
 
 const prompt = ai.definePrompt({
     name: 'bmiAdvicePrompt',
-    input: { schema: BmiAdviceRequestSchema },
+    input: { schema: InternalBmiAdviceRequestSchema },
     output: { schema: BmiAdviceResponseSchema },
     prompt: `You are a helpful, encouraging health assistant.
 A user has calculated their BMI and received the following result:
 - BMI: {{{bmi}}}
 - Category: {{{category}}}
-- Weight: {{{weight}}} {{#if (eq unit "metric")}}kg{{else}}lbs{{/if}}
-- Height: {{{height}}} {{#if (eq unit "metric")}}m{{else}}in{{/if}}
+- Weight: {{{weight}}} {{{weightUnit}}}
+- Height: {{{height}}} {{{heightUnit}}}
 
 Based on this, provide:
 1.  **Personalized Advice**: Write a short paragraph of encouraging, non-judgmental advice.
@@ -87,7 +92,13 @@ const getBmiAdviceFlow = ai.defineFlow(
     outputSchema: BmiAdviceResponseSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const promptInput = {
+        ...input,
+        weightUnit: input.unit === 'metric' ? 'kg' : 'lbs',
+        heightUnit: input.unit === 'metric' ? 'm' : 'in',
+    };
+
+    const { output } = await prompt(promptInput);
     if (!output) {
         throw new Error("Could not generate BMI advice.");
     }
