@@ -7,8 +7,10 @@ export default function Home() {
       <div className="w-full max-w-2xl">
         <Card className="shadow-2xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-headline font-bold animate-gradient-blink bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[200%_auto]">
-              BMI Insights
+            <CardTitle className="text-3xl font-headline font-bold">
+              <span className="animate-gradient-blink bg-gradient-to-r from-primary via-accent to-primary bg-[200%_auto] bg-clip-text text-transparent">
+                BMI Insights
+              </span>
             </CardTitle>
             <CardDescription className="text-lg">
               Calculate your BMI and get a visual interpretation of your result.
